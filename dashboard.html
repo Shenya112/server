@@ -529,7 +529,7 @@
 </div>
 
 <script>
-  const WS_URL = `ws://${location.host}/ws/dashboard`;
+  const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/dashboard`;
   let ws = null;
   let connected = false;
 
